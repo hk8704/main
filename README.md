@@ -354,49 +354,49 @@ http get http://localhost:8081/orders/3    # null이였던 point 에 30만 마�
 kubectl create ns phone82
 kubectl get ns
 ```
-![image](https://user-images.githubusercontent.com/73699193/97960790-6d20ef00-1df5-11eb-998d-d5591975b5d4.png)
+![image](https://user-images.githubusercontent.com/70673885/98277417-b5e5cd00-1fda-11eb-9d05-253651f2d948.png)
 
 - 폴더 만들기, 해당폴더로 이동
 ```
 mkdir phone82
 cd phone 82
 ```
-![image](https://user-images.githubusercontent.com/73699193/97961127-0ea84080-1df6-11eb-81b3-1d5e460d4c0f.png)
+![image](https://user-images.githubusercontent.com/70673885/98277612-e7f72f00-1fda-11eb-93fa-b821f988882b.png)
 
 - 소스 가져오기
 ```
-git clone https://github.com/phone82/app.git
+git clone https://github.com/hk8704/marketing.git
 ```
-![image](https://user-images.githubusercontent.com/73699193/98089346-eb4cc680-1ec5-11eb-9c23-f6987dee9308.png)
+![image](https://user-images.githubusercontent.com/70673885/98277769-137a1980-1fdb-11eb-9920-0ef336710816.png)
 
 - 빌드하기
 ```
-cd app
+cd marketing
 mvn package -Dmaven.test.skip=true
 ```
-![image](https://user-images.githubusercontent.com/73699193/98089442-19320b00-1ec6-11eb-88b5-544cd123d62a.png)
+![image](https://user-images.githubusercontent.com/70673885/98278269-b29f1100-1fdb-11eb-87c2-9517c0146b6a.png)
 
 - 도커라이징: Azure 레지스트리에 도커 이미지 푸시하기
 ```
-az acr build --registry admin02 --image admin02.azurecr.io/app:latest .
+az acr build --registry admin180 --image admin180.azurecr.io/app:latest .
 ```
-![image](https://user-images.githubusercontent.com/73699193/98089685-6dd58600-1ec6-11eb-8fb9-80705c854c7b.png)
+![image](https://user-images.githubusercontent.com/70673885/98278583-24775a80-1fdc-11eb-8785-7749d855aa0b.png)
 
 - 컨테이너라이징: 디플로이 생성 확인
 ```
-kubectl create deploy app --image=admin02.azurecr.io/app:latest -n phone82
+kubectl create deploy marketing --image=admin180.azurecr.io/app:latest -n phone82
 kubectl get all -n phone82
 ```
-![image](https://user-images.githubusercontent.com/73699193/98090560-83977b00-1ec7-11eb-9770-9cfe1021f0b4.png)
+![image](https://user-images.githubusercontent.com/70673885/98279769-ba5fb500-1fdd-11eb-82de-06887b155633.png)
 
 - 컨테이너라이징: 서비스 생성 확인
 ```
-kubectl expose deploy app --type="ClusterIP" --port=8080 -n phone82
+kubectl expose deploy marketing --type="ClusterIP" --port=8080 -n phone82
 kubectl get all -n phone82
 ```
-![image](https://user-images.githubusercontent.com/73699193/98090693-b80b3700-1ec7-11eb-959e-fc0ce94663aa.png)
+![image](https://user-images.githubusercontent.com/70673885/98279903-eb3fea00-1fdd-11eb-9a96-804170342efd.png)
 
-- pay, store, customer, gateway에도 동일한 작업 반복
+- app, pay, store, customer, gateway에도 동일한 작업 반복
 
 
 
@@ -411,7 +411,7 @@ readiness 설정 (무정지 배포)
 liveness 설정 (self-healing)
 resource 설정 (autoscaling)
 ```
-![image](https://user-images.githubusercontent.com/73699193/98092861-8182eb80-1eca-11eb-87c5-afa22140ebad.png)
+![image](https://user-images.githubusercontent.com/70673885/98281296-ee3bda00-1fdf-11eb-8d31-4d4792b00ef9.png)
 
 - deployment.yml로 서비스 배포
 ```
@@ -423,7 +423,7 @@ kubectl apply -f kubernetes/deployment.yml
 
 * 서킷 브레이킹 프레임워크의 선택: Spring FeignClient + Hystrix 옵션을 사용하여 구현함
 
-시나리오는 단말앱(app)-->결제(pay) 시의 연결을 RESTful Request/Response 로 연동하여 구현이 되어있고, 결제 요청이 과도할 경우 CB 를 통하여 장애격리.
+시나리오는 결제(pay)--> 마케팅(marketing) 시의 연결을 RESTful Request/Response 로 연동하여 구현이 되어있고, 결제 요청이 과도할 경우 CB 를 통하여 장애격리.
 
 - Hystrix 를 설정:  요청처리 쓰레드에서 처리시간이 610 밀리가 넘어서기 시작하여 어느정도 유지되면 CB 회로가 닫히도록 (요청을 빠르게 실패처리, 차단) 설정
 ```
