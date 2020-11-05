@@ -25,6 +25,23 @@
     1. 고객이 모든 진행내역을 조회 할 수 있도록 성능을 고려하여 별도의 view로 구성한다.> CQRS
 
 
+추가 기능적 요구사항
+1. 결제가 완료 마케팅에서 마일리지가 발급된다.
+1. 포인트 발급이 완료되면 고객이 마일리지를 조회 할 수 있다.
+1. 결제가 취소되면 마일리지 발급이 취소된다.
+1. 마일리지 발급이 취소되면 고객이 마일리지를 조회 할 수 있다.
+
+추가 비기능적 요구사항
+1. 트랜잭션
+    1. 결제취소가 되면 반드시 마일리지 발급이 취소 되어야 한다.> Sync 호출
+    1. 결제가 완료되면 마일리지가 발급되고 주문정보에 업데이트가 되어야 한다.> SAGA, 보상 트랜젝션
+1. 장애격리
+    1. 마케팅관리 기능이 수행되지 않더라도 포인트 발급 요청은 365일 24시간 받을 수 있어야 한다.> Async (event-driven), Eventual Consistency
+    1. 마케팅관리 시스템이 과중되면 결제 취소를 잠시후에 하도록 유도한다> Circuit breaker, fallback
+1. 성능
+    1. 고객이 모든 진행내역과 포인트 발급 내역을 조회 할 수 있도록 성능을 고려하여 별도의 view로 구성한다.> CQRS
+
+
 # 체크포인트
 
 1. Saga
@@ -52,7 +69,7 @@
 
 
 ## Event Storming 결과
-* MSAEz 로 모델링한 이벤트스토밍 결과:  http://www.msaez.io/#/storming/G4Le38IyNmPdGV7UTxmqbVhBw8z1/share/fef3e793823083653eb1b4ef257a6bb3/-MLAUDjJIxzggM4AGxrE
+* MSAEz 로 모델링한 이벤트스토밍 결과:  http://www.msaez.io/#/storming/8NDyL2Ej0kVOxpa23nqi8JXGk4Z2/mine/bd00984f1c0bdc41fd6f6bab6dd2e9a8/-MLNjkrdWBV7HaZxupPp
 
 
 ### 이벤트 도출
@@ -66,22 +83,29 @@
 	- 배송취소됨, 메시지발송됨  :  계획된 사업 범위 및 프로젝트에서 벗어서난다고 판단하여 제외
 	- 주문정보전달됨  :  주문됨을 선택하여 제외
 	
+### 추가 이벤트 도출	
+![image](https://user-images.githubusercontent.com/70673885/98251864-a061aa80-1fbc-11eb-8436-907a944f4f15.png)
 
 ### 액터, 커맨드 부착하여 읽기 좋게
 ![image](https://user-images.githubusercontent.com/73699193/97982030-82f2dc00-1e16-11eb-821d-27351387f8ad.png)
+
+### 추가 커멘드 (액터는 없음)
+![image](https://user-images.githubusercontent.com/70673885/98252579-765cb800-1fbd-11eb-9e65-243e9033e780.png)
 
 ### 어그리게잇으로 묶기
 ![image](https://user-images.githubusercontent.com/73699193/97982108-a158d780-1e16-11eb-9270-6e9646268fd1.png)
 
     - 주문, 대리점관리, 결제 어그리게잇을 생성하고 그와 연결된 command 와 event 들에 의하여 트랜잭션이 유지되어야 하는 단위로 그들 끼리 묶어줌
+    
+### 추가된 이벤트와 커맨드 어그리게잇으로 묶기
+![image](https://user-images.githubusercontent.com/70673885/98252758-a1dfa280-1fbd-11eb-95f1-70f3d3f39dbd.png)
 
 ### 바운디드 컨텍스트로 묶기
-
-![image](https://user-images.githubusercontent.com/73699193/97982213-c77e7780-1e16-11eb-87ef-03dbe66a6cf2.png)
+![image](https://user-images.githubusercontent.com/70673885/98253633-a193d700-1fbe-11eb-9f6d-6118a9784728.png)
 
     - 도메인 서열 분리 
         - Core Domain:  app(front), store : 없어서는 안될 핵심 서비스이며, 연견 Up-time SLA 수준을 99.999% 목표, 배포주기는 app 의 경우 1주일 1회 미만, store 의 경우 1개월 1회 미만
-        - Supporting Domain:  customer(view) : 경쟁력을 내기위한 서비스이며, SLA 수준은 연간 60% 이상 uptime 목표, 배포주기는 각 팀의 자율이나 표준 스프린트 주기가 1주일 이므로 1주일 1회 이상을 기준으로 함.
+        - Supporting Domain:  customer(view), marketing : 경쟁력을 내기위한 서비스이며, SLA 수준은 연간 60% 이상 uptime 목표, 배포주기는 각 팀의 자율이나 표준 스프린트 주기가 1주일 이므로 1주일 1회 이상을 기준으로 함.
         - General Domain:  pay : 결제서비스로 3rd Party 외부 서비스를 사용하는 것이 경쟁력이 높음 
 
 ### 폴리시 부착 (괄호는 수행주체, 폴리시 부착을 둘째단계에서 해놔도 상관 없음. 전체 연계가 초기에 드러남)
