@@ -26,9 +26,9 @@
 
 
 추가 기능적 요구사항
-1. 결제가 완료 마케팅에서 마일리지가 발급된다.
-1. 포인트 발급이 완료되면 고객이 마일리지를 조회 할 수 있다.
-1. 결제가 취소되면 마일리지 발급이 취소된다.
+1. 주문이되고 결제가 완료되면 마케팅에서 마일리지가 발급된다.
+1. 마일리지 발급이 완료되면 고객이 마일리지를 조회 할 수 있다.
+1. 주문취소가 되어 결제가 취소되면 마일리지 발급이 취소된다.
 1. 마일리지 발급이 취소되면 고객이 마일리지를 조회 할 수 있다.
 
 추가 비기능적 요구사항
@@ -94,11 +94,11 @@
 
 ### 어그리게잇으로 묶기
 ![image](https://user-images.githubusercontent.com/73699193/97982108-a158d780-1e16-11eb-9270-6e9646268fd1.png)
-
-    - 주문, 대리점관리, 결제 어그리게잇을 생성하고 그와 연결된 command 와 event 들에 의하여 트랜잭션이 유지되어야 하는 단위로 그들 끼리 묶어줌
     
 ### 추가된 이벤트와 커맨드 어그리게잇으로 묶기
 ![image](https://user-images.githubusercontent.com/70673885/98252758-a1dfa280-1fbd-11eb-95f1-70f3d3f39dbd.png)
+
+    - 주문, 대리점관리, 결제, 마케팅 어그리게잇을 생성하고 그와 연결된 command 와 event 들에 의하여 트랜잭션이 유지되어야 하는 단위로 그들 끼리 묶어줌
 
 ### 바운디드 컨텍스트로 묶기
 ![image](https://user-images.githubusercontent.com/70673885/98253633-a193d700-1fbe-11eb-9f6d-6118a9784728.png)
@@ -108,67 +108,63 @@
         - Supporting Domain:  customer(view), marketing : 경쟁력을 내기위한 서비스이며, SLA 수준은 연간 60% 이상 uptime 목표, 배포주기는 각 팀의 자율이나 표준 스프린트 주기가 1주일 이므로 1주일 1회 이상을 기준으로 함.
         - General Domain:  pay : 결제서비스로 3rd Party 외부 서비스를 사용하는 것이 경쟁력이 높음 
 
-### 폴리시 부착 (괄호는 수행주체, 폴리시 부착을 둘째단계에서 해놔도 상관 없음. 전체 연계가 초기에 드러남)
+### 신규 폴리시 도출
 
-![image](https://user-images.githubusercontent.com/73699193/97982278-e3821900-1e16-11eb-97f4-fa2f59fc7ae0.png)
+![image](https://user-images.githubusercontent.com/70673885/98253938-018a7d80-1fbf-11eb-92b3-1477d2e2fddf.png)
 
-### 폴리시의 이동
+### 신규 폴리시의 이동
 
-![image](https://user-images.githubusercontent.com/73699193/97982413-19bf9880-1e17-11eb-9720-cd82cf1060ff.png)
+![image](https://user-images.githubusercontent.com/70673885/98254144-47dfdc80-1fbf-11eb-939d-87b1de547e17.png)
+
 
 ### 컨텍스트 매핑 (점선은 Pub/Sub, 실선은 Req/Resp)
 
-![image](https://user-images.githubusercontent.com/73699193/97982527-45428300-1e17-11eb-8641-b658bab34fc6.png)
+![image](https://user-images.githubusercontent.com/70673885/98254266-6f36a980-1fbf-11eb-8518-1bd54fcbaa5e.png)
 
-    - 컨텍스트 매핑하여 묶어줌.
-    - 팀원 중 외국인이 투입되어 유비쿼터스 랭귀지인 영어로 변경	
+    - 유비쿼터스 랭귀지 적용
+    - 기존 모형에 적용하여 컨텍스트 맵핑 후 점선은 실선으로 비동기, 동기 표현
 
 ### 완성된 모형
 
-![image](https://user-images.githubusercontent.com/73699193/97982584-60ad8e00-1e17-11eb-8fb6-af87b7c6ff91.png)
+![image](https://user-images.githubusercontent.com/70673885/98255529-d4d76580-1fc0-11eb-92ef-8dfe6ad7a424.png)
 
-    - View Model 추가
 
-### 기능적 요구사항 검증
+### 추가 기능적 요구사항 검증
 
-![image](https://user-images.githubusercontent.com/73699193/97982759-96527700-1e17-11eb-9144-f95de1e0d01e.png)
+![image](https://user-images.githubusercontent.com/70673885/98256372-d48b9a00-1fc1-11eb-97ef-93b57c7db001.png)
 
-   	- 고객이 APP에서 폰을 주문한다. (ok)
-   	- 고객이 결제한다. (ok)
-	- 결제가 되면 주문 내역이 대리점에 전달된다. (ok)
-	- 대리점에 주문 정보가 도착하면 배송한다. (ok)
-	- 배송이 되면 APP에서 배송상태를 조회할 수 있다. (ok)
+   	- 주문이되고 결제가 완료되면 마케팅에서 마일리지가 발급된다. (ok)
+   	- 마일리지 발급이 완료되면 고객이 마일리지를 조회 할 수 있다.. (ok)
 
-![image](https://user-images.githubusercontent.com/73699193/97982841-b2eeaf00-1e17-11eb-9f09-9b74f85a96ca.png)
+![image](https://user-images.githubusercontent.com/70673885/98257250-cbe79380-1fc2-11eb-9857-a6eb6f110472.png)
 
-	- 고객이 주문을 취소할 수 있다. (ok)
-	- 주문이 취소되면 결제가 취소된다. (ok)
-	- 고객이 결제상태를 APP에서  조회 할 수 있다. (ok)
+	- 주문취소가 되어 결제가 취소되면 마일리지 발급이 취소된다. (ok)
+	- 마일리지 발급이 취소되면 고객이 마일리지를 조회 할 수 있다. (ok)
 
-![image](https://user-images.githubusercontent.com/73699193/97982928-d3b70480-1e17-11eb-957e-6a9093d2a0d7.png)
+![image](https://user-images.githubusercontent.com/70673885/98257549-2680ef80-1fc3-11eb-9ff9-4a517b03e1c5.png)
   
 	- 고객이 모든 진행내역을 볼 수 있어야 한다. (ok)
 
 
-### 비기능 요구사항 검증
+### 추가 비기능 요구사항 검증
 
-![image](https://user-images.githubusercontent.com/73699193/97983019-f6e1b400-1e17-11eb-86ef-d43873ccbb7d.png)
+![image](https://user-images.githubusercontent.com/70673885/98258213-f1c16800-1fc3-11eb-986d-2867a55cd3a6.png)
 
-    - 1) 결제가 되지 않은 주문건은 아예 거래가 성립되지 않아야 한다. (Req/Res)
-    - 2) 대리점관리 기능이 수행되지 않더라도 주문은 365일 24시간 받을 수 있어야 한다. (Pub/sub)
-    - 3) 결제시스템이 과중되면 사용자를 잠시동안 받지 않고 결제를 잠시후에 하도록 유도한다. (Circuit breaker)
-    - 4) 주문이 취소되면 결제가 취소되고 주문정보에 업데이트가 되어야 한다.  (SAGA, 보상트렌젝션)
-    - 5) 고객이 모든 진행내역을 조회 할 수 있도록 성능을 고려하여 별도의 view로 구성한다. (CQRS, DML/SELECT 분리)
+    - 1) 결제취소가 되면 반드시 마일리지 발급이 취소 되어야 한다.(Req/Res)
+    - 2) 결제가 완료되면 마일리지가 발급되고 주문정보에 업데이트가 되어야 한다 (Pub/sub)
+    - 3) 마케팅관리 기능이 수행되지 않더라도 포인트 발급 요청은 365일 24시간 받을 수 있어야 한다. (Circuit breaker)
+    - 4) 마케팅관리 시스템이 과중되면 결제 취소를 잠시후에 하도록 유도한다.  (SAGA, 보상트렌젝션)
+    - 5) 고객이 모든 진행내역과 포인트 발급 내역을 조회 할 수 있도록 성능을 고려하여 별도의 view로 구성한다. (CQRS, DML/SELECT 분리)
 
 
 ## 헥사고날 아키텍처 다이어그램 도출 (Polyglot)
 
-![image](https://user-images.githubusercontent.com/73699193/98181638-162b2f00-1f47-11eb-81af-0b71ff811e1c.png)
+![image](https://user-images.githubusercontent.com/70673885/98258396-2d5c3200-1fc4-11eb-93c6-764942a13dfd.png)
 
     - Chris Richardson, MSA Patterns 참고하여 Inbound adaptor와 Outbound adaptor를 구분함
     - 호출관계에서 PubSub 과 Req/Resp 를 구분함
     - 서브 도메인과 바운디드 컨텍스트의 분리:  각 팀의 KPI 별로 아래와 같이 관심 구현 스토리를 나눠가짐
-    - 대리점의 경우 Polyglot 검증을 위해 Hsql로 셜계
+    - 대리점, 마케팅의 경우 Polyglot 검증을 위해 Hsql로 셜계
 
 
 # 구현:
