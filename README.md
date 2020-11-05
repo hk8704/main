@@ -378,13 +378,13 @@ mvn package -Dmaven.test.skip=true
 
 - 도커라이징: Azure 레지스트리에 도커 이미지 푸시하기
 ```
-az acr build --registry admin180 --image admin180.azurecr.io/app:latest .
+az acr build --registry admin180 --image admin180.azurecr.io/marketing:latest .
 ```
 ![image](https://user-images.githubusercontent.com/70673885/98278583-24775a80-1fdc-11eb-8785-7749d855aa0b.png)
 
 - 컨테이너라이징: 디플로이 생성 확인
 ```
-kubectl create deploy marketing --image=admin180.azurecr.io/app:latest -n phone82
+kubectl create deploy marketing --image=admin180.azurecr.io/marketing:latest -n phone82
 kubectl get all -n phone82
 ```
 ![image](https://user-images.githubusercontent.com/70673885/98279769-ba5fb500-1fdd-11eb-82de-06887b155633.png)
@@ -563,7 +563,7 @@ kubectl set image deploy store store=admin02.azurecr.io/store:v4 -n phone82
 
 - config map 생성 후 조회
 ```
-kubectl create configmap apiurl --from-literal=url=http://pay:8080 --from-literal=fluentd-server-ip=10.xxx.xxx.xxx -n phone82
+kubectl create configmap apiurl --from-literal=url=http://marketing:8080 --from-literal=fluentd-server-ip=10.xxx.xxx.xxx -n phone82
 ```
 ![image](https://user-images.githubusercontent.com/73699193/98107784-5bffdd00-1ede-11eb-8da6-82dbead0d64f.png)
 
@@ -586,9 +586,10 @@ kubectl get pod/app-56f677d458-5gqf2 -n phone82 -o yaml | kubectl replace --forc
 http POST http://app:8080/orders item=dfdf2 qty=22
 ```
 ![image](https://user-images.githubusercontent.com/73699193/98110323-42f92b00-1ee2-11eb-90f3-fe8044085e9d.png)
-
-![image](https://user-images.githubusercontent.com/73699193/98110445-720f9c80-1ee2-11eb-851e-adcd1f2f7851.png)
-
+```
+증적
+![image](https://user-images.githubusercontent.com/70673885/98289026-edf50c00-1fea-11eb-8b00-567bd8a9bb01.png)
+```
 ![image](https://user-images.githubusercontent.com/73699193/98110782-f4985c00-1ee2-11eb-97a7-1fed3c6b042c.png)
 
 
