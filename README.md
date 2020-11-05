@@ -159,7 +159,7 @@
 
 ## 헥사고날 아키텍처 다이어그램 도출 (Polyglot)
 
-![image](https://user-images.githubusercontent.com/70673885/98258396-2d5c3200-1fc4-11eb-93c6-764942a13dfd.png)
+![image](https://user-images.githubusercontent.com/70673885/98258935-cc812980-1fc4-11eb-9b72-fe27c968f533.png)
 
     - Chris Richardson, MSA Patterns 참고하여 Inbound adaptor와 Outbound adaptor를 구분함
     - 호출관계에서 PubSub 과 Req/Resp 를 구분함
@@ -183,6 +183,9 @@ mvn spring-boot:run
 
 cd customer
 mvn spring-boot:run  
+
+cd marketing
+mvn spring-boot:run 
 ```
 
 ## DDD 의 적용
@@ -190,17 +193,16 @@ mvn spring-boot:run
 각 서비스내에 도출된 핵심 Aggregate Root 객체를 Entity 로 선언하였다: (예시는 app 마이크로 서비스). 
 이때 가능한 현업에서 사용하는 언어 (유비쿼터스 랭귀지)를 그대로 사용하려고 노력했다. 
 하지만, 일부 구현에 있어서 영문이 아닌 경우는 실행이 불가능한 경우가 있기 때문에 계속 사용할 방법은 아닌것 같다. 
-(Maven pom.xml, Kafka의 topic id, FeignClient 의 서비스 id 등은 한글로 식별자를 사용하는 경우 오류가 발생하는 것을 확인하였다)
 
-![image](https://user-images.githubusercontent.com/73699193/98182350-e2e99f80-1f48-11eb-825c-da099795fe29.png)
+![image](https://user-images.githubusercontent.com/70673885/98260034-2f26f500-1fc6-11eb-8772-66b1a58a3196.png)
 
-Entity Pattern 과 Repository Pattern 을 적용하여 JPA 를 통하여 다양한 데이터소스 유형 (RDB or NoSQL) 에 대한 별도의 처리가 없도록 데이터 접근 어댑터를 자동 생성하기 위하여 Spring Data REST 의 RestRepository 를 적용하였다
+Marketing에 Entity Pattern 과 Repository Pattern 을 적용하여 JPA 를 통하여 다양한 데이터소스 유형 (RDB or NoSQL) 에 대한 별도의 처리가 없도록 데이터 접근 어댑터를 자동 생성하기 위하여 Spring Data REST 의 RestRepository 를 적용하였다
 
-![image](https://user-images.githubusercontent.com/73699193/98182486-378d1a80-1f49-11eb-8e14-0de7296978b5.png)
+![image](https://user-images.githubusercontent.com/70673885/98260269-7ad99e80-1fc6-11eb-83d7-7e31c1d93aed.png)
 
 
 ## 폴리글랏 퍼시스턴스
-대리점의 경우 H2 DB인 주문과 결제와 달리 Hsql으로 구현하여 MSA간 서로 다른 종류의 DB간에도 문제 없이 동작하여 다형성을 만족하는지 확인하였다. 
+marketing의 경우 H2 DB인 주문과 결제와 달리 Hsql으로 구현하여 MSA간 서로 다른 종류의 DB간에도 문제 없이 동작하여 다형성을 만족하는지 확인하였다. 
 
 
 app, pay, customer의 pom.xml 설정
@@ -208,7 +210,7 @@ app, pay, customer의 pom.xml 설정
 ![image](https://user-images.githubusercontent.com/73699193/97972993-baf32280-1e08-11eb-8158-912e4d28d7ea.png)
 
 
-store의 pom.xml 설정
+marketing, store의 pom.xml 설정
 
 ![image](https://user-images.githubusercontent.com/73699193/97973735-e0346080-1e09-11eb-9636-605e2e870fb0.png)
 
@@ -218,9 +220,9 @@ store의 pom.xml 설정
 
 gateway > applitcation.yml 설정
 
-![image](https://user-images.githubusercontent.com/73699193/98060621-5d54e980-1e8d-11eb-943c-692c5953c6a1.png)
+![image](https://user-images.githubusercontent.com/70673885/98260866-2682ee80-1fc7-11eb-9969-1af4ddc4211d.png)
 
-gateway 테스트
+gateway 테스트 
 
 ```
 http POST http://gateway:8080/orders item=test qty=1
@@ -231,101 +233,117 @@ http POST http://gateway:8080/orders item=test qty=1
 
 ## 동기식 호출 과 Fallback 처리
 
-분석단계에서의 조건 중 하나로 주문(app)->결제(pay) 간의 호출은 동기식 일관성을 유지하는 트랜잭션으로 처리하기로 하였다. 
-호출 프로토콜은 이미 앞서 Rest Repository 에 의해 노출되어있는 REST 서비스를 FeignClient 를 이용하여 호출하도록 한다. 
+분석단계에서의 조건 중 하나로 결제취소(pay)->마일리지 발급(marketing) 간의 호출은 동기식 일관성을 유지하는 트랜잭션으로 처리하기로 하였다. 
+호출 프로토콜은 이미 앞서 DDD적용에서 설명한 Rest Repository 에 의해 노출되어있는 REST 서비스를 FeignClient 를 이용하여 호출하도록 한다. 
 
 - 결제서비스를 호출하기 위하여 FeignClient 를 이용하여 Service 대행 인터페이스 (Proxy) 를 구현 
 ```
-# (app) external > PaymentService.java
+# (pay) external > MarketingService.java
 
 package phoneseller.external;
 
-@FeignClient(name="pay", url="${api.pay.url}")
-public interface PaymentService {
+@FeignClient(name="marketing", url="${api.url.marketing}")
+public interface MarketingService {
 
-    @RequestMapping(method= RequestMethod.POST, path="/payments")
-    public void pay(@RequestBody Payment payment);
+    @RequestMapping(method= RequestMethod.POST, path="/marketings")
+    public void payCancel(@RequestBody Marketing marketing);
 
 }
 ```
-![image](https://user-images.githubusercontent.com/73699193/98065833-b1190000-1e98-11eb-9e44-84d4961011ed.png)
+![image](https://user-images.githubusercontent.com/70673885/98262227-b7a69500-1fc8-11eb-996b-92a181c8a62b.png)
 
 
-- 주문을 받은 직후 결제를 요청하도록 처리
+- (주문취소가되서) 결제가 취소되면 마케팅으로 마일리지발급 취소되도록 처리
 ```
-# (app) Order.java (Entity)
+# (pay) Payment.java (Entity)
 
-    @PostPersist
-    public void onPostPersist(){
-
-       phoneseller.external.Payment payment = new phoneseller.external.Payment();
-        payment.setOrderId(this.getId());
-        payment.setProcess("Ordered");
-        
-        AppApplication.applicationContext.getBean(phoneseller.external.PaymentService.class)
-            .pay(payment);
-    }
+            //Following code causes dependency to external APIs
+            // it is NOT A GOOD PRACTICE. instead, Event-Policy mapping is recommended.
+            System.out.println("***** BEFORE EXTERNAL *****");
+            phoneseller.external.Marketing marketing = new phoneseller.external.Marketing();
+            marketing.setOrderId(getOrderId());
+            marketing.setPoint((double)0);
+            marketing.setProcess("PayCancelled");
+            // mappings goes here
+            PayApplication.applicationContext.getBean(phoneseller.external.MarketingService.class)
+                    .payCancel(marketing);
 ```
-![image](https://user-images.githubusercontent.com/73699193/98066539-a6f80100-1e9a-11eb-8dd8-bf213d90e5fb.png)
+![image](https://user-images.githubusercontent.com/70673885/98263538-4f58b300-1fca-11eb-9eda-cf1d90435163.png)
 
-- 동기식 호출이 적용되서 결제 시스템이 장애가 나면 주문도 못받는다는 것을 확인:
 
-```
-#결제(pay) 서비스를 잠시 내려놓음 (ctrl+c)
-
-#주문하기(order)
-http http://localhost:8081/orders item=note20 qty=1   #Fail
-```
-![image](https://user-images.githubusercontent.com/73699193/98072284-04934a00-1ea9-11eb-9fad-40d3996e109f.png)
+- 동기식 호출이 적용되서 마케팅 시스템이 장애가 나면 요청 못받는다는 것을 확인:
 
 ```
-#결제(pay) 서비스 재기동
-cd pay
+#주문(>결제>마케팅) 하여 마일리지 발급
+http http://localhost:8081/orders item=test88 qty=1 
+http GET http://localhost:8081/orders/2
+```
+![image](https://user-images.githubusercontent.com/70673885/98266557-d0657980-1fcd-11eb-9fb0-3aff6e991824.png)
+
+```
+#marketing 서비스를 잠시 내려놓음 (ctrl+c)
+
+#주문(>결제) 취소하기
+http PATCH http://localhost:8081/orders/2 status="cancel"  
+발급된 30만 마일리지가 0으로 변하지 않고 그대로 인 것을 확인
+```
+![image](https://user-images.githubusercontent.com/70673885/98267104-597cb080-1fce-11eb-85a6-b931d2bd0996.png)
+
+```
+#marketing 서비스 재기동
+cd marketing
 mvn spring-boot:run
 
-#주문하기(order)
-http http://localhost:8081/orders item=note21 qty=2   #Success
+#주문(>결제) 취소하기
+http PATCH http://localhost:8081/orders/2 status="cancel"
+http GET http://localhost:8081/orders/2
+http GET http://localhost:8086/marketings/2
+
+발급된 30만 마일리지가 0으로 변하여 마일리지 발급 취소가 동작한 것을 확인
 ```
-![image](https://user-images.githubusercontent.com/73699193/98074359-9f8e2300-1ead-11eb-8854-0449a65ff55c.png)
+![image](https://user-images.githubusercontent.com/70673885/98267650-f6d7e480-1fce-11eb-95ca-a7eebd2109a1.png)
+![image](https://user-images.githubusercontent.com/70673885/98267954-4cac8c80-1fcf-11eb-97ef-327b6fe9bd14.png)
 
 
+## 비동기식 호출 
 
-## 비동기식 호출 / 시간적 디커플링 / 장애격리 
 
-
-결제(pay)가 이루어진 후에 대리점(store)으로 이를 알려주는 행위는 비 동기식으로 처리하여 대리점(store)의 처리를 위하여 결제주문이 블로킹 되지 않아도록 처리한다.
+결제(pay)가 이루어진 후에 마케팅서비스(marketing)로 이를 알려주는 행위는 비 동기식으로 처리하여 마케팅서비스(marketing)의 처리를 위하여 결제주문이 블로킹 되지 않아도록 처리한다.
  
 - 결제승인이 되었다(payCompleted)는 도메인 이벤트를 카프카로 송출한다(Publish)
  
-![image](https://user-images.githubusercontent.com/73699193/98075277-6f478400-1eaf-11eb-88c8-2b4a7736e56b.png)
+![image](https://user-images.githubusercontent.com/70673885/98269486-20920b00-1fd1-11eb-86e9-49254db2277b.png)
 
 
-- 대리점(store)에서는 결제승인(payCompleted) 이벤트에 대해서 이를 수신하여 자신의 정책을 처리하도록 PolicyHandler 를 구현한다.
-- 주문접수(OrderReceive)는 송출된 결제승인(payCompleted) 정보를 store의 Repository에 저장한다.:
+- 마케팅(marketing)에서는 결제승인(payCompleted) 이벤트에 대해서 이를 수신하여 자신의 정책을 처리하도록 PolicyHandler 를 구현한다.
+- payCompleted(marketing)는 송출된 결제승인(payCompleted) 정보를 marketing의 Repository에 저장한다.(30만마일리지):
  
-![image](https://user-images.githubusercontent.com/73699193/98076059-e0d40200-1eb0-11eb-94ad-c4ea114cb3aa.png)
+![image](https://user-images.githubusercontent.com/70673885/98271264-1bce5680-1fd3-11eb-816a-308510cc8694.png)
 
 
-대리점(store)시스템은 주문(app)/결제(pay)와 완전히 분리되어있으며(sync transaction 없음), 이벤트 수신에 따라 처리되기 때문에, 대리점(store)이 유지보수로 인해 잠시 내려간 상태라도 주문을 받는데 문제가 없다.(시간적 디커플링):
+마케팅(marketing)시스템이 유지보수로 인해 잠시 내려간 상태라도 주문을 받는데 문제가 없다.(시간적 디커플링):
 ```
-# 대리점(store) 서비스를 잠시 내려놓음 (ctrl+c)
+#마케팅(marketing) 서비스를 잠시 내려놓음 (ctrl+c)
 
 #주문하기(order)
-http http://localhost:8081/orders item=note30 qty=2  #Success
+http http://localhost:8081/orders item=galaxy23 qty=3  #Success
+```
+![image](https://user-images.githubusercontent.com/70673885/98272658-ad8a9380-1fd4-11eb-8400-1972f0b98760.png)
 
+```
 #주문상태 확인
-http get http://localhost:8081/orders    # 상태값이 'Shipped'이 아닌 'Payed'에서 멈춤을 확인
+http get http://localhost:8081/orders/3    # 마일리지가 null인 것을 확인
 ```
-![image](https://user-images.githubusercontent.com/73699193/98078301-2b577d80-1eb5-11eb-9d89-7c03a3fa27dd.png)
+![image](https://user-images.githubusercontent.com/70673885/98272491-7e742200-1fd4-11eb-9865-285724ce13ec.png)
 ```
-#대리점(store) 서비스 기동
+#마케팅(marketing) 서비스 기동
 cd store
 mvn spring-boot:run
 
 #주문상태 확인
-http get http://localhost:8081/orders     # 'Payed' 였던 상태값이 'Shipped'로 변경된 것을 확인
+http get http://localhost:8081/orders/3    # null이였던 point 에 30만 마일리지가 발급된 것을 확인
 ```
-![image](https://user-images.githubusercontent.com/73699193/98078837-2cd57580-1eb6-11eb-8850-a8c621410d61.png)
+![image](https://user-images.githubusercontent.com/70673885/98273339-7b2d6600-1fd5-11eb-88f8-00374a10d066.png)
 
 # 운영
 
