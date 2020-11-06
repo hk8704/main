@@ -417,7 +417,7 @@ resource 설정 (autoscaling)
 
 - deployment.yml로 서비스 배포
 ```
-cd app
+cd marketing
 kubectl apply -f kubernetes/deployment.yml
 ```
 
@@ -448,7 +448,7 @@ hystrix:
  siege가 생성되어 있지 않으면:
  kubectl run siege --image=apexacme/siege-nginx -n phone82
  siege 들어가기:
- kubectl exec -it pod/siege-5c7c46b788-4rn4r -c siege -n phone82 -- /bin/bash
+ kubectl exec -it pod/siege-5c7c46b788-qg6wl -c siege -n phone82 -- /bin/bash
  siege 종료:
  Ctrl + C -> exit
 ```
@@ -457,9 +457,9 @@ hystrix:
 - 60초 동안 실시
 
 ```
-siege -c100 -t60S -r10 -v --content-type "application/json" 'http://app:8080/orders POST {"item": "abc123", "qty":3}'
+siege -c100 -t60S -r10 -v --content-type "application/json" 'http://pay:8080/payments/1 PATCH {"orderId":"4","process": "OrderCancelled"}'
 ```
-- 부하 발생하여 CB가 발동하여 요청 실패처리하였고, 밀린 부하가 pay에서 처리되면서 다시 order를 받기 시작 
+- 부하 발생하여 CB가 발동하여 요청 실패처리하였고, 밀린 부하가 마케팅에서 처리되면서 다시 order를 받기 시작 
 
 ![image](https://user-images.githubusercontent.com/73699193/98098702-07eefb80-1ed2-11eb-94bf-316df4bf682b.png)
 
@@ -472,40 +472,41 @@ siege -c100 -t60S -r10 -v --content-type "application/json" 'http://app:8080/ord
 
 ### 오토스케일 아웃
 
-- 대리점 시스템에 대한 replica 를 동적으로 늘려주도록 HPA 를 설정한다. 설정은 CPU 사용량이 15프로를 넘어서면 replica 를 10개까지 늘려준다:
+- 마케팅 시스템에 대한 replica 를 동적으로 늘려주도록 HPA 를 설정한다. 설정은 CPU 사용량이 15프로를 넘어서면 replica 를 7개까지 늘려준다:
 
 ```
 # autocale out 설정
-store > deployment.yml 설정
+marketing > deployment.yml 설정
 ```
 ![image](https://user-images.githubusercontent.com/73699193/98187434-44fbd200-1f54-11eb-9859-daf26f812788.png)
 
 ```
-kubectl autoscale deploy store --min=1 --max=10 --cpu-percent=15 -n phone82
+kubectl autoscale deploy marketing --min=1 --max=7 --cpu-percent=15 -n phone82
 ```
-![image](https://user-images.githubusercontent.com/73699193/98100149-ce1ef480-1ed3-11eb-908e-a75b669d611d.png)
-
+![image](https://user-images.githubusercontent.com/70673885/98321548-b907aa00-2028-11eb-9001-97e0bdf75182.png)
 
 -
-- CB 에서 했던 방식대로 워크로드를 2분 동안 걸어준다.
+- CB 에서 했던 방식대로 워크로드를 걸어준다.
 ```
 kubectl exec -it pod/siege-5c7c46b788-qg6wl -c siege -n phone82 -- /bin/bash
 siege -c100 -t100S -r10 -v --content-type "application/json" 'http://marketing:8080/marketings'
 ```
-![image](https://user-images.githubusercontent.com/73699193/98102543-0d9b1000-1ed7-11eb-9cb6-91d7996fc1fd.png)
+
+![image](https://user-images.githubusercontent.com/70673885/98322583-20bef480-202b-11eb-8880-249a80cf1558.png)
+
 
 - 오토스케일이 어떻게 되고 있는지 모니터링을 걸어둔다:
 ```
-kubectl get deploy store -w -n phone82
+kubectl get deploy marketing -w -n phone82
 ```
-- 어느정도 시간이 흐른 후 스케일 아웃이 벌어지는 것을 확인할 수 있다. max=10 
+- 어느정도 시간이 흐른 후 스케일 아웃이 벌어지는 것을 확인할 수 있다. max=7
 - 부하를 줄이니 늘어난 스케일이 점점 줄어들었다.
 
-![image](https://user-images.githubusercontent.com/73699193/98102926-92862980-1ed7-11eb-8f19-a673d72da580.png)
+![image](https://user-images.githubusercontent.com/70673885/98323281-cfb00000-202c-11eb-8030-80d9111f2727.png)
 
-- 다시 부하를 주고 확인하니 Availability가 높아진 것을 확인 할 수 있었다.
+-HPA 적용으로 Availability가 보장된 것을 것을 확인 할 수 있었다.
 
-![image](https://user-images.githubusercontent.com/73699193/98103249-14765280-1ed8-11eb-8c7c-9ea1c67e03cf.png)
+![image](https://user-images.githubusercontent.com/70673885/98323137-7d6edf00-202c-11eb-997e-053d7b7c6d83.png)
 
 
 ## 무정지 재배포
@@ -550,16 +551,6 @@ kubectl set image deploy marketing marketing=admin180.azurecr.io/marketing:v4 -n
 
 
 ## Config Map
-
-- apllication.yml 설정
-
-* default쪽
-
-![image](https://user-images.githubusercontent.com/73699193/98108335-1c85c080-1edf-11eb-9d0f-1f69e592bb1d.png)
-
-* docker 쪽
-
-![image](https://user-images.githubusercontent.com/73699193/98108645-ad5c9c00-1edf-11eb-8d54-487d2262e8af.png)
 
 - Deployment.yml 설정
 
