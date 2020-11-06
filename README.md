@@ -233,6 +233,13 @@ http GET http://gateway:8080/marketings
 
 
 
+## CQRS
+
+marketing의 마일리지 정보가 view에서 확인됨
+
+![image](https://user-images.githubusercontent.com/70673885/98332749-97b3b780-2042-11eb-96aa-882bb903e73e.png)
+
+
 ## 동기식 호출 과 Fallback 처리
 
 분석단계에서의 조건 중 하나로 결제취소(pay)->마일리지 발급(marketing) 간의 호출은 동기식 일관성을 유지하는 트랜잭션으로 처리하기로 하였다. 
