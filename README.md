@@ -461,11 +461,11 @@ siege -c100 -t60S -r10 -v --content-type "application/json" 'http://pay:8080/pay
 ```
 - 부하 발생하여 CB가 발동하여 요청 실패처리하였고, 밀린 부하가 마케팅에서 처리되면서 다시 order를 받기 시작 
 
-![image](https://user-images.githubusercontent.com/73699193/98098702-07eefb80-1ed2-11eb-94bf-316df4bf682b.png)
+![image](https://user-images.githubusercontent.com/70673885/98332357-dd23b500-2041-11eb-83fd-73ee77b2bcdf.png)
 
 - report
 
-![image](https://user-images.githubusercontent.com/73699193/98099047-6e741980-1ed2-11eb-9c55-6fe603e52f8b.png)
+![image](https://user-images.githubusercontent.com/70673885/98332470-13f9cb00-2042-11eb-9f3c-1ab12188fada.png)
 
 - CB 잘 적용됨을 확인
 
