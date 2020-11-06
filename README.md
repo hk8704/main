@@ -225,9 +225,11 @@ gateway > applitcation.yml 설정
 gateway 테스트 
 
 ```
-http POST http://gateway:8080/orders item=test qty=1
+http POST http://gateway:8080/orders item=LG10 qty=1
+http GET http://gateway:8080/marketings
 ```
-![image](https://user-images.githubusercontent.com/73699193/98183284-2d6c1b80-1f4b-11eb-90ad-c95c4df1f36a.png)
+![image](https://user-images.githubusercontent.com/70673885/98310441-47236680-2010-11eb-8b4f-aa90e0be6226.png)
+![image](https://user-images.githubusercontent.com/70673885/98310472-5dc9bd80-2010-11eb-9e88-434eaf3ed925.png)
 
 
 
@@ -569,29 +571,19 @@ kubectl create configmap apiurl --from-literal=url=http://marketing:8080 --from-
 
 - 설정한 url로 주문 호출
 ```
-http POST http://app:8080/orders item=dfdf1 qty=21
+http GET http://marketing:8080/marketings 
 ```
 
 ![image](https://user-images.githubusercontent.com/73699193/98109319-b732cf00-1ee0-11eb-9e92-ad0e26e398ec.png)
 
 - configmap 삭제 후 app 서비스 재시작
 ```
+
 kubectl delete configmap apiurl -n phone82
-kubectl get pod/app-56f677d458-5gqf2 -n phone82 -o yaml | kubectl replace --force -f-
+config 에러 확인
 ```
-![image](https://user-images.githubusercontent.com/73699193/98110005-cf571e00-1ee1-11eb-973f-2f4922f8833c.png)
-
-- configmap 삭제된 상태에서 주문 호출   
-```
-http POST http://app:8080/orders item=dfdf2 qty=22
-```
-![image](https://user-images.githubusercontent.com/73699193/98110323-42f92b00-1ee2-11eb-90f3-fe8044085e9d.png)
-```
-증적
-![image](https://user-images.githubusercontent.com/70673885/98289026-edf50c00-1fea-11eb-8b00-567bd8a9bb01.png)
-```
-![image](https://user-images.githubusercontent.com/73699193/98110782-f4985c00-1ee2-11eb-97a7-1fed3c6b042c.png)
-
+![image](https://user-images.githubusercontent.com/70673885/98312113-56a4ae80-2014-11eb-8abb-06e6d634ec58.png)
+![image](https://user-images.githubusercontent.com/70673885/98311294-67ecbb80-2012-11eb-83a9-a39be8492ee6.png)
 
 
 ## Self-healing (Liveness Probe)
